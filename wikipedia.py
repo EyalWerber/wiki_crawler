@@ -35,6 +35,17 @@ def soup_cleaner(soup):
                 element.decompose()
 
 
+def get_next_href(paragraph_list):
+    for paragraph in paragraph_list:
+        if paragraph.find('a'):
+            if(not get_first_wiki(paragraph.find_all('a'))):
+                # if no anchor tags were found, go to next paragraph
+                continue
+            else:
+                href = get_first_wiki(paragraph.find_all('a'))
+                return href
+
+
 def loop_check(href):
     if href in LOOP_WIKIS:
         print("LOOP!!!")
@@ -42,27 +53,23 @@ def loop_check(href):
         LOOP_WIKIS.add(href)
 
 
+def get_soup(href):
+    res = r.get(base_url+href)
+    soup = bs(res.content, features="lxml")
+    soup_cleaner(soup)
+    return soup
+
+
 def crawl_hrefs(href):
 
     counter = 0
     while (href != '/wiki/Philosophy'):
         counter += 1
-        res = r.get(base_url+href)
-
-        soup = bs(res.content, features="lxml")
-        soup_cleaner(soup)
+        soup = get_soup(href)
         paragraph_li_list = get_real_paragraphs(soup.find_all(
             'p')) + get_real_paragraphs(soup.find_all('li'))
 
-        for paragraph in paragraph_li_list:
-            if paragraph.find('a'):
-                if(not get_first_wiki(paragraph.find_all('a'))):
-                    # if no anchor tags were found, go to next paragraph
-                    continue
-                else:
-                    href = get_first_wiki(paragraph.find_all('a'))
-                    break
-
+        href = get_next_href(paragraph_li_list)
         print(f'Iteration #{counter} - {href}')
         loop_check(href)
 
