@@ -14,6 +14,7 @@ def get_first_wiki(anchor_list):
     for a in anchor_list:
         if(a['href'].find('/wiki/') > -1 and a['href'].find('IPA') == -1 and a['href'].find('File') == -1 and a['href'].find('https:') == -1):
             if(a['href'] in LOOP_WIKIS):
+                # print('SKIP!')
                 continue
             return a['href'][a['href'].find('/wiki/'):]
 
@@ -26,17 +27,12 @@ def get_real_paragraphs(paragraph_list):
 
 
 def soup_cleaner(soup):
-    if(soup.find('div', {'class': "quotebox"})):
-        soup.find('div', {'class': "quotebox"}).decompose()
-        # print('qoutebox CLEANED')
-    if(soup.findAll('table')):
-        for table in soup.findAll('table'):
-            # print('tables CLEANED')
-            table.decompose()
-    if(soup.findAll('p', {'class': "mw-empty-elt"})):
-        for p in soup.findAll('p', {'class': "mw-empty-elt"}):
-            # print('mw-empty-elt CLEANED')
-            p.decompose()
+    unwanted_elements = {'div': {'class': "quotebox"},
+                         'p': {'class': "mw-empty-elt"}, 'table': {}}
+    for key, value in unwanted_elements.items():
+        if soup.find_all(key, value):
+            for element in soup.find_all(key, value):
+                element.decompose()
 
 
 def loop_check(href):
@@ -46,7 +42,7 @@ def loop_check(href):
         LOOP_WIKIS.add(href)
 
 
-def recourse_hrefs(href):
+def crawl_hrefs(href):
 
     counter = 0
     while (href != '/wiki/Philosophy'):
@@ -55,11 +51,13 @@ def recourse_hrefs(href):
 
         soup = bs(res.content, features="lxml")
         soup_cleaner(soup)
-        paragraph_li_list = get_real_paragraphs(soup.find_all('p'))
-        paragraph_li_list += get_real_paragraphs(soup.find_all('li'))
+        paragraph_li_list = get_real_paragraphs(soup.find_all(
+            'p')) + get_real_paragraphs(soup.find_all('li'))
+
         for paragraph in paragraph_li_list:
             if paragraph.find('a'):
                 if(not get_first_wiki(paragraph.find_all('a'))):
+                    # if no anchor tags were found, go to next paragraph
                     continue
                 else:
                     href = get_first_wiki(paragraph.find_all('a'))
@@ -71,5 +69,5 @@ def recourse_hrefs(href):
     print(f'FINISHED ON ITERATION {counter}')
 
 
-# recourse_hrefs('/wiki/Verification')
-recourse_hrefs(base_href)
+# crawl_hrefs('/wiki/Verification')
+crawl_hrefs(base_href)
