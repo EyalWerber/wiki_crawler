@@ -7,8 +7,7 @@ base_url = 'https://en.wikipedia.org'
 
 base_href = '/wiki/Special:Random'
 
-LOOP_WIKIS = ['/wiki/Latin',
-              '/wiki/Latin_language', '/wiki/Greek_language', '/wiki/Ancient_Greek_language', '/wiki/Ancient_Greece', 'Traditional_Chinese_characters', '/wiki/Descriptive_knowledge', '/wiki/Writing_system', '/wiki/Proposition', '/wiki/List_of_Latin_phrases', '/wiki/Classical_antiquity']
+LOOP_WIKIS = set()
 ALL_WIKIS = []
 
 
@@ -42,11 +41,10 @@ def soup_cleaner(soup):
 
 
 def loop_check(href):
-    if href in ALL_WIKIS:
-        LOOP_WIKIS.append(href)
+    if href in LOOP_WIKIS:
         print("LOOP!!!")
     else:
-        ALL_WIKIS.append(href)
+        LOOP_WIKIS.add(href)
 
 
 def recourse_hrefs(href):
