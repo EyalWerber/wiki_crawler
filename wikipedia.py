@@ -8,7 +8,6 @@ base_url = 'https://en.wikipedia.org'
 base_href = '/wiki/Special:Random'
 
 LOOP_WIKIS = set()
-ALL_WIKIS = []
 
 
 def get_first_wiki(anchor_list):
