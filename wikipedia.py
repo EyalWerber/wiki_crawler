@@ -20,20 +20,24 @@ def get_first_wiki(anchor_list):
             return a['href'][a['href'].find('/wiki/'):]
 
 
-def get_real_paragraph(paragraph_list):
+def get_real_paragraphs(paragraph_list):
     for p in paragraph_list:
-        if not p.has_attr('class') and p.find('a'):
-            return p
+        if p.has_attr('class') and not p.find('a'):
+            paragraph_list.remove(p)
+    return paragraph_list
 
 
 def soup_cleaner(soup):
     if(soup.find('div', {'class': "quotebox"})):
         soup.find('div', {'class': "quotebox"}).decompose()
+        # print('qoutebox CLEANED')
     if(soup.findAll('table')):
         for table in soup.findAll('table'):
+            # print('tables CLEANED')
             table.decompose()
     if(soup.findAll('p', {'class': "mw-empty-elt"})):
         for p in soup.findAll('p', {'class': "mw-empty-elt"}):
+            # print('mw-empty-elt CLEANED')
             p.decompose()
 
 
@@ -54,13 +58,15 @@ def recourse_hrefs(href):
 
         soup = bs(res.content, features="lxml")
         soup_cleaner(soup)
-
-        paragraph = get_real_paragraph(soup.find_all('p'))
-        if(paragraph.find_all('a')):
-            if(not get_first_wiki(paragraph.find_all('a'))):
-                continue
-            else:
-                href = get_first_wiki(paragraph.find_all('a'))
+        paragraph_li_list = get_real_paragraphs(soup.find_all('p'))
+        paragraph_li_list += get_real_paragraphs(soup.find_all('li'))
+        for paragraph in paragraph_li_list:
+            if paragraph.find('a'):
+                if(not get_first_wiki(paragraph.find_all('a'))):
+                    continue
+                else:
+                    href = get_first_wiki(paragraph.find_all('a'))
+                    break
 
         print(f'Iteration #{counter} - {href}')
         loop_check(href)
@@ -68,4 +74,5 @@ def recourse_hrefs(href):
     print(f'FINISHED ON ITERATION {counter}')
 
 
+# recourse_hrefs('/wiki/Verification')
 recourse_hrefs(base_href)
